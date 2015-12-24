@@ -10,12 +10,12 @@ import requests
  
  
 client = discord.Client()
-client.login('mycutebot@yandex.com', 'zanpaktou001')
+client.login('mycutebot@yandex.com', 'pasword_goes_here')
  
 @client.event
 def on_message(message):
     if message.content.startswith('!hello'):
-        client.send_message(message.channel, 'Hello fucking world!')
+        client.send_message(message.channel, 'Hello world!')
  
     m_suck = re.match(ur'!suckmy(?P<edible>\w+)', message.content)
     if m_suck:
