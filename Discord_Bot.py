@@ -202,42 +202,54 @@ and replace with a new entry
 ##def setBio(message):
 ##
 
-#The user needs to type !register gender sexualtiy pronouns
-#   If this is the first time entering, update the date and time
-#ex: !register purple cocks apple/oranges
-#   will get gender = purple, sexualtiy = cocks, pronouns = apples/oranges
-def registerUser(message):
+def test_parse_registration():
+    tests = [
+        (['!register a b c/d/e'], {'gender': 'a', 'sexuality': 'b', 'pronouns': 'c/d/e'}),
+        (['!register purple cocks apples/oranges'], {'gender': 'purple', 'sexuality': 'cocks', 'pronouns': 'apples/oranges'}),
+    ]
+    for args, expected in tests:
+        actual = parse_registration(*args)
+        try:
+            assert actual == expected
+        except AssertionError:
+            print "'parse_registration({})' failed: Expected {} but got {}".format(
+                repr(args), repr(expected), repr(actual)
+            )
+        else:
+            print "'parse_registration({})' passed! Got {}".format(
+                repr(args), repr(actual)
+            )
+
     
-    #used to cut the ends off the string if ends are attached
-    check_format = message.content[len('!register'):].strip()
+def parse_registration(content):
+    """
+    Format:
+        gender sexuality pronouns
+        
+        multiple pronouns can be specified using '/' as a separator
+
+    ex: !register purple cocks apple/oranges
+    will get gender = purple, sexuality = cocks, pronouns = apples/oranges
+    """
+    check_format = content[len('!register'):].strip()
     print check_format
-    #get the gender from the start of the string
-    gender = re.match(r'(^[a-z]*)', check_format)
-    print gender
-    #replace gender with ''
-    new_string = re.sub(r'(^[a-z]*)(\s{1,1})', '', check_format)
-    print new_string
-    #get sexualtiy
-    sexualtiy = re.match(r'(^[a-z]*)', new_string)
-    print sexualtiy
-    new_string = re.sub(r'(^[a-z]*)(\s{1,1})', '', new_string)
-    print new_string
-    pronouns = re.match(r'^((([a-z]|(\/))*))', new_string)
-    print pronouns
+    pat = ur"""(?P<gender>\w*)(\s{1,1})(?P<sexuality>\w*)(\s{1,1})(?P<pronouns>(\w+[\/]?)*)"""
+    m = re.match(pat, check_format)
+    return m.groupdict() if m is not None else None
+    
 
+def registerUser(message):
+    """
+    The user needs to type !register gender sexuality pronouns
+    If this is the first time entering, update the date and time
+    """
+    #used to cut the ends off the string if ends are attached
+    info = parse_registration(message.content) or {}
     client.send_message(message.channel, message.author.id)
-    client.send_message(message.channel, gender.group(0))
-    client.send_message(message.channel, sexualtiy.group(0))
-    client.send_message(message.channel, pronouns.group(0))
-    print str(gender.group(0))
-    print type(sexualtiy.group(0))
-    print type(pronouns.group(0))
+    client.send_message(message.channel, info.get('gender') or '(No gender specified)')
+    client.send_message(message.channel, info.get('sexuality') or '(No sexuality specified)')
+    client.send_message(message.channel, info.get('pronouns') or '(No pronouns specified)')
     client.send_message(message.channel, "done")
-
-    print type(message.author.name)
-    print message.author.name
-    name_insterted = (message.author.name).encode('ascii', 'ignore')
-
 
 ##    #########
 ##    #update stuff in database
